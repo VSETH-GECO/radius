@@ -193,10 +193,4 @@
 #	Login-Service = Rlogin,
 #	Login-IP-Host = shellbox.ispdomain.com
 
-{% for item in radius_static_users %}
-# Static entry: {{ item.name }}
-{{ item.mac }} Auth-Type := "EAP", Cleartext-Password := {{ item.mac }}
-        Tunnel-Type = VLAN,
-        Tunnel-Medium-Type = IEEE-802,
-        Tunnel-Private-Group-Id = "{{ item.vlan }}"
-{% endfor %}
+# THIS FILE SHOULD HAVE BEEN REPLACED
