@@ -21,4 +21,4 @@ ls -la /config
 bash /config/clients.sh
 
 echo "Handing over to FreeRADIUS"
-exec bash -x /docker-entrypoint.sh
+exec bash -x /docker-entrypoint.sh "$@"
