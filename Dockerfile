@@ -6,7 +6,7 @@ ADD conf/authorize /etc/freeradius/mods-config/files/authorize
 ADD conf/clients.conf /etc/freeradius/clients.conf
 ADD conf/eap /etc/freeradius/mods-available/eap
 ADD conf/radiusd.conf /etc/freeradius/radiusd.conf
-ADD conf/sql /etc/freeradius/mods-available/sql.env
+ADD conf/sql.env /etc/freeradius/mods-available/sql.env
 ADD bootstrap.sh /
 
 ENTRYPOINT /bootstrap.sh
