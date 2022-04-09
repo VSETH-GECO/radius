@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           repo: k8s
           owner: VSETH-GECO
-          event_type: radius_update
+          event_type: radius
           message: |
             {
               "tag": "${{ env.SHORT_SHA }}"
