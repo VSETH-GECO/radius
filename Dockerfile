@@ -9,4 +9,8 @@ ADD conf/radiusd.conf /etc/freeradius/radiusd.conf
 ADD conf/sql.env /etc/freeradius/mods-available/sql.env
 ADD bootstrap.sh /
 
+RUN apt update && \
+    apt install -y gettext && \
+    rm -Rf /var/cache/apt/*
+
 ENTRYPOINT /bootstrap.sh
