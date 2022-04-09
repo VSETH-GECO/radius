@@ -18,7 +18,7 @@ envsubst '$RADIUS_DB_HOST,$RADIUS_DB_PORT,$RADIUS_DB_USER,$RADIUS_DB_DB,$RADIUS_
 
 echo "--------- Static config -------------"
 ls -la /config
-/config/clients.sh
+bash /config/clients.sh
 
 echo "Handing over to FreeRADIUS"
 exec /docker-entrypoint.sh
