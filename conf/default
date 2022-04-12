@@ -448,8 +448,8 @@ authorize {
     if (!control:Cleartext-Password && User-Password) {
             update control {
                     Cleartext-Password := "%{User-Password}"
-        # Dummy value, will not be sent:
-                    Tunnel-Private-Group-ID := "1252"
+                    # Dummy value, will not be sent:
+                    Tunnel-Private-Group-ID := "499"
             }
     }
 
