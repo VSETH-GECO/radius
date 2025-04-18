@@ -1,4 +1,4 @@
-FROM freeradius/freeradius-server
+FROM freeradius/freeradius-server:3.0.25
 
 ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
 ADD conf/default /etc/freeradius/sites-enabled/default
