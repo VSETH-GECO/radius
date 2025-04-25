@@ -1,4 +1,4 @@
-FROM freeradius/freeradius-server:3.0.25
+FROM freeradius/freeradius-server:3.2.0
 
 ADD conf/radiusd.conf /etc/freeradius/radiusd.conf
 ADD conf/default /etc/freeradius/sites-enabled/default
