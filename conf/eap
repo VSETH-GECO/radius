@@ -1,5 +1,3 @@
-# Managed by Ansible (role: radius), do not edit!
-
 # -*- text -*-
 ##
 ##  eap.conf -- Configuration for EAP types (PEAP, TTLS, etc.)

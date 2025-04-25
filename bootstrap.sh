@@ -4,7 +4,7 @@ set -eo pipefail
 
 echo "--------------------------------"
 
-echo "Boostrapping at $(date) on $(hostname -f)"
+echo "Bootstrapping at $(date) on $(hostname -f)"
 
 echo "--------------------------------"
 echo "DB config"
@@ -13,10 +13,11 @@ echo "Port: ${RADIUS_DB_PORT}"
 echo "User: ${RADIUS_DB_USER}"
 echo "Database: ${RADIUS_DB_DB}"
 # RADIUS_DB_PASSWORD is not printed
-envsubst '$RADIUS_DB_HOST,$RADIUS_DB_PORT,$RADIUS_DB_USER,$RADIUS_DB_DB,$RADIUS_DB_PASSWORD' < /etc/freeradius/mods-available/sql.env > /etc/freeradius/mods-enabled/sql
-
+envsubst '$RADIUS_DB_HOST,$RADIUS_DB_PORT,$RADIUS_DB_USER,$RADIUS_DB_DB,$RADIUS_DB_PASSWORD' </etc/freeradius/mods-available/sql.env >/etc/freeradius/mods-enabled/sql
 
 echo "--------- Static config -------------"
+# these scripts are added by the k8s deployment
+# https://github.com/VSETH-GECO/k8s/blob/main/radius/configmap.yaml
 ls -la /config
 bash /config/clients.sh
 bash /config/authorize.sh
