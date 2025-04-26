@@ -1,9 +1,14 @@
 FROM freeradius/freeradius-server:3.2.0
 
 ADD conf/radiusd.conf /etc/freeradius/radiusd.conf
+
 ADD conf/default /etc/freeradius/sites-enabled/default
 ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
-ADD conf/eap /etc/freeradius/mods-available/eap
+
+# TODO do we need this? 
+ADD conf/eap /etc/freeradius/mods-available/eap 
+
+# this file serves as a template to generate mods-enabled/sql during startup
 ADD conf/sql.env /etc/freeradius/mods-available/sql.env
 
 # these files are overwritten by the k8s deployment and only included for documentation purposes
@@ -17,4 +22,4 @@ RUN apt update && \
     apt install -y gettext && \
     rm -Rf /var/cache/apt/*
 
-ENTRYPOINT /bootstrap.sh
+ENTRYPOINT [ "/bootstrap.sh" ]

@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  freeradius:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freeradius
+    entrypoint: /bootstrap.sh -X
+    # restart: always
+    depends_on:
+      - mariadb
+    environment:
+      - RADIUS_DB_HOST=mariadb
+      - RADIUS_DB_PORT=3306
+      - RADIUS_DB_DB=radius
+      - RADIUS_DB_USER=radius
+      - RADIUS_DB_PASSWORD=radiuspass
+    volumes:
+      - ./scripts:/config
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: radius_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: radiuspass
+      MYSQL_DATABASE: radius
+      MYSQL_USER: radius
+      MYSQL_PASSWORD: radiuspass
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+
+volumes:
+  mariadb_data:
