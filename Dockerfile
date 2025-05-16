@@ -1,12 +1,12 @@
 FROM freeradius/freeradius-server:3.2.0
 
+# general
 ADD conf/radiusd.conf /etc/freeradius/radiusd.conf
-
+# sites
 ADD conf/default /etc/freeradius/sites-enabled/default
 ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
-
-# TODO do we need this? 
-ADD conf/eap /etc/freeradius/mods-available/eap 
+# mods
+ADD conf/eap /etc/freeradius/mods-enabled/eap 
 
 # this file serves as a template to generate mods-enabled/sql during startup
 ADD conf/sql.env /etc/freeradius/mods-available/sql.env
