@@ -290,7 +290,7 @@ authorize {
 	#
 	#  See policy.d/filter for the definition of the filter_username policy.
 	#
-#	filter_username
+#   filter_username
 
 	#
 	#  Some broken equipment sends passwords with embedded zeros.
@@ -331,7 +331,7 @@ authorize {
 	#
 	#  The chap module will set 'Auth-Type := CHAP' if we are
 	#  handling a CHAP request and Auth-Type has not already been set
-#	chap
+#   chap
 
 	#
 	#  If the users are logging in with an MS-CHAP-Challenge
@@ -339,13 +339,13 @@ authorize {
 	#  the MS-CHAP-Challenge attribute, and add 'Auth-Type := MS-CHAP'
 	#  to the request, which will cause the server to then use
 	#  the mschap module for authentication.
-#	mschap
+#   mschap
 
 	#
 	#  If you have a Cisco SIP server authenticating against
 	#  FreeRADIUS, uncomment the following line, and the 'digest'
 	#  line in the 'authenticate' section.
-#	digest
+#   digest
 
 	#
 	#  The WiMAX specification says that the Calling-Station-Id
@@ -435,7 +435,7 @@ authorize {
 
 	#
 	#  The ldap module reads passwords from the LDAP database.
-	#-ldap
+#   -ldap
 
 	#
 	#  Enforce daily limits on time spent logged in.
@@ -535,9 +535,9 @@ authenticate {
 	#  A back-end database listed in the 'authorize' section
 	#  MUST supply a CLEAR TEXT password.  Encrypted passwords
 	#  won't work.
-	#Auth-Type CHAP {
-	#	chap
-	#}
+	# Auth-Type CHAP {
+	# 	chap
+	# }
 
 	#
 	#  MSCHAP authentication.
