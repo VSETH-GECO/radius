@@ -13,7 +13,6 @@ echo "Port: ${RADIUS_DB_PORT}"
 echo "User: ${RADIUS_DB_USER}"
 echo "Database: ${RADIUS_DB_DB}"
 # RADIUS_DB_PASSWORD is not printed
-envsubst '$RADIUS_DB_HOST,$RADIUS_DB_PORT,$RADIUS_DB_USER,$RADIUS_DB_DB,$RADIUS_DB_PASSWORD' </etc/freeradius/mods-available/sql.env >/etc/freeradius/mods-enabled/sql
 
 echo "--------- Static config -------------"
 # these scripts are added by the k8s deployment

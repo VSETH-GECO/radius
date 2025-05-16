@@ -7,9 +7,7 @@ ADD conf/default /etc/freeradius/sites-enabled/default
 ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
 # mods
 ADD conf/eap /etc/freeradius/mods-enabled/eap 
-
-# this file serves as a template to generate mods-enabled/sql during startup
-ADD conf/sql.env /etc/freeradius/mods-available/sql.env
+ADD conf/sql /etc/freeradius/mods-enabled/sql
 
 # these files are overwritten by the k8s deployment and only included for documentation purposes
 # https://github.com/VSETH-GECO/k8s/blob/main/radius/configmap.yaml
