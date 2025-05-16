@@ -1,4 +1,4 @@
-FROM freeradius/freeradius-server:3.2.0
+FROM freeradius/freeradius-server:3.2.7
 
 # general
 ADD conf/radiusd.conf /etc/freeradius/radiusd.conf

@@ -280,7 +280,7 @@ eap {
 		#  For OpenSSL >= 1.1.0, just leave this commented
 		#  out, and OpenSSL will do the right thing.
 		#
-		dh_file = ${certdir}/dh
+	#   dh_file = ${certdir}/dh
 
 		#  If your system doesn't have /dev/urandom,
 		#  you will need to create this file, and
