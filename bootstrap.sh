@@ -15,10 +15,12 @@ echo "Database: ${RADIUS_DB_DB}"
 # RADIUS_DB_PASSWORD is not printed
 
 echo "--------- Static config -------------"
-# these scripts are added by the k8s deployment
+# these files are added by the k8s deployment
 # https://github.com/VSETH-GECO/k8s/blob/main/radius/configmap.yaml
 ls -la /config
-bash /config/clients.sh
+
+# replace env vars in-place as they are not supported in clients.conf
+envsubst '$SWITCH_SECRET' </config/clients.conf.template >/etc/freeradius/clients.conf
 
 echo "Handing over to FreeRADIUS"
 exec bash -x /docker-entrypoint.sh "$@"

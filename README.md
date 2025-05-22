@@ -12,7 +12,6 @@ The setup is IMO a bit confusing, so this parts should clarify things.
 For development purposes:
 
 * `init`: Sets up the local database
-* `scripts`: Included the script, that are responsible for overwriting `authorize`/`clients.conf` on startup
 
 ## Synopsis
 
