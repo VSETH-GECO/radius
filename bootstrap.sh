@@ -19,7 +19,6 @@ echo "--------- Static config -------------"
 # https://github.com/VSETH-GECO/k8s/blob/main/radius/configmap.yaml
 ls -la /config
 bash /config/clients.sh
-bash /config/authorize.sh
 
 echo "Handing over to FreeRADIUS"
 exec bash -x /docker-entrypoint.sh "$@"
