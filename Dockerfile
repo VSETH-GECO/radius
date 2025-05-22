@@ -9,10 +9,6 @@ ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
 ADD conf/eap /etc/freeradius/mods-enabled/eap 
 ADD conf/sql /etc/freeradius/mods-enabled/sql
 
-# this file is overwritten by the k8s deployment and only included for documentation purposes
-# https://github.com/VSETH-GECO/k8s/blob/main/radius/configmap.yaml
-ADD conf/clients.conf /etc/freeradius/clients.conf
-
 ADD bootstrap.sh /
 
 RUN apt update && \

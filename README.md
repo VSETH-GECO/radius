@@ -84,8 +84,8 @@ In the local setup, there is a client and a user configured:
 `clients.conf`:
 
 ```text
-client dockernet {
- ipaddr = 127.0.0.1/8
+client localhost {
+ ipaddr = 127.0.0.1
  secret = testing123
 }
 ```
