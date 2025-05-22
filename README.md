@@ -12,6 +12,7 @@ The setup is IMO a bit confusing, so this parts should clarify things.
 For development purposes:
 
 * `init`: Sets up the local database
+* `test`: Sets up the local freeradius
 
 ## Synopsis
 

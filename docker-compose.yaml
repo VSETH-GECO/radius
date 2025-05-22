@@ -16,8 +16,10 @@ services:
       - RADIUS_DB_DB=radius
       - RADIUS_DB_USER=radius
       - RADIUS_DB_PASSWORD=radiuspass
+      - SWITCH_SECRET=blub
     volumes:
-      - ./scripts:/config
+      - ./test/clients.conf:/config/clients.conf.template
+      - ./test/authorize:/etc/freeradius/mods-config/files/authorize
     ports:
       - "1812:1812/udp"
       - "1813:1813/udp"
