@@ -2,11 +2,8 @@
 
 ## Structure
 
-The setup is IMO a bit confusing, so this parts should clarify things.
-
-* `conf`: Containg PolyLAN specific configuration
-  * `radiusd.conf`/`default`/`inner-tunnel`/`eap`/`sql`: Your normal config files
-  * `clients.conf`: Only in this repo included for documentation purpose, but is overwritten on startup, see `k8s`. It contains the switches.
+* `conf`: Containing PolyLAN specific configuration
+  * `radiusd.conf`/`default`/`inner-tunnel`/`eap`/`sql`: Your normal config files.
 * `bootstrap.sh`: Glues all the special cases from above together.
 
 For development purposes:
