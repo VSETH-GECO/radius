@@ -215,7 +215,7 @@ sql {
 
 	# If set to 'yes' (default) we read profiles unless Fall-Through = no in the groupreply table.
 	# If set to 'no' we do not read profiles unless Fall-Through = yes in the groupreply table.
-	read_profiles = yes
+#   read_profiles = yes
 
 	# Remove stale session if checkrad does not see a double login
 	delete_stale_sessions = yes
@@ -343,7 +343,7 @@ sql {
 	#  virtual server, each with a different client list, then
 	#  the SQL clients are added only to the first listener.
 	#
-	read_clients = yes
+#   read_clients = yes
 
 	# Table to keep radius client info
 	client_table = "nas"

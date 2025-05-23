@@ -445,6 +445,7 @@ authorize {
 	expiration
 	logintime
 
+    # This is for backwards-compatibility, see 'PAP and User-Password' in https://networkradius.com/doc/current/upgrading/other.html
     if (!control:Cleartext-Password && User-Password) {
             update control {
                     Cleartext-Password := "%{User-Password}"

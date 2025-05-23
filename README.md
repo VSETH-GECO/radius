@@ -13,31 +13,37 @@ For development purposes:
 
 ## Synopsis
 
-The RADIUS server is essentially configured to accept any authentication request and send back the `Tunnel-Private-Group-Id := 499` attribute to assign the user's port to VLAN 499 on the user switch.
+The RADIUS server is essentially configured to accept any authentication request (?). The user switch is configured that upon a successful authentication response, the user's port on the user switch is assigned to VLAN 499.
 
-In VLAN 499, the user is presented the network login page provided by login-ng (dedicated app)
+In VLAN 499, the user is presented the network login page provided by `login-ng` (dedicated app)
 
-After a successful login, login-ng creates a bouncer (dedicated app) job that reassigns the user to the VLAN dedicated to the user switch to which the user is plugged in to.
+After a successful login, `login-ng` creates a `bouncer` (dedicated app) job that reassigns the user to the VLAN dedicated to the user switch to which the user is plugged in to.
 
-This works because the bounder can access the freeradius database. On an authentication request, freeradius looks up the attributes for a specific username in the `radreply` table. The bouncer edits this table, if a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
+This works because the bounder can access the freeradius database. On an authentication request, freeradius looks up the attributes for a specific username in the `radreply` table. The `bouncer` edits this table, if a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
 
-Moreover, the bouncer sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC (username == password) via the `radcheck` table (not sure how this is used though).
+Moreover, the `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC (username == password) via the `radcheck` table (not sure how this is used though).
 
-Presumably, the user switch uses PAP to authenticate with freeradius, as there is nothing explicitly configured in the user switch.
-
-Honestly, I think most of the custom configured described in the next section can be trashed.
+Presumably, the client uses PAP to authenticate with freeradius, or alternatively EAP-TTLS with MSCHAPv2.
 
 ## What is configured?
 
 In general, the configuration files are a modified version of the [default configuration files](https://github.com/FreeRADIUS/freeradius-server/tree/release_3_2_0/raddb).
+
+Overview:
+
+* PAP is enabled
+* EAP support is enabled
+* By default, EAP-TTLS is used with MSCHAPv2
+
+Detailed:
 
 * `radiusd.conf`
   * log to `stdout`
   * log all (accept and reject) auth results
 * `default`
   * disable IPv6 listeners
-  * disable various username validators in `authorize` (`filter_username`, `chap`, `mschap`, `digest`, `-ldap`)
-  * but we also add a validator, that accepts any authentication request (probably because of our setup with login-ng and bouncer):
+  * disable various modules in `authorize` (`filter_username`, `chap`, `mschap`, `digest`, `-ldap`)
+  * a validator is added for [backwards-compatibility](https://networkradius.com/doc/current/upgrading/other.html). Not sure whats going on with `Tunnel-Private-Group-ID := "499"`, though:
 
     ```text
         if (!control:Cleartext-Password && User-Password) {
@@ -66,8 +72,11 @@ In general, the configuration files are a modified version of the [default confi
   * disable tls with mysql db
   * set db coordinates via env vars (server, port, database, user, password)
   * set `read_groups = no`
-  * set `read_profiles = yes`
-  * set `read_clients = yes`
+
+Nice explanation of the configuration:
+
+* [default](https://networkradius.com/doc/current/raddb/sites-available/default.html)
+* [inner-tunnel](https://networkradius.com/doc/current/raddb/sites-available/default.html)
 
 ## Run locally
 
