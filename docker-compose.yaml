@@ -20,6 +20,7 @@ services:
     volumes:
       - ./test/clients.conf:/config/clients.conf.template
       - ./test/authorize:/etc/freeradius/mods-config/files/authorize
+      - ./test/users:/etc/freeradius/mods-config/files/users
     ports:
       - "1812:1812/udp"
       - "1813:1813/udp"
