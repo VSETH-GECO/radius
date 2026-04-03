@@ -168,3 +168,12 @@ linelog log_accounting {
 		unknown = "NAS %{%{Packet-Src-IP-Address}:-%{Packet-Src-IPv6-Address}} (%{%{NAS-IP-Address}:-%{NAS-IPv6-Address}}) sent unknown Acct-Status-Type %{Acct-Status-Type}"
 	}
 }
+
+linelog log_nas_port {
+
+    format = "timestamp=%S, user=%{User-Name}, nas_ip=%{NAS-IP-Address}, nas_port=%{NAS-Port}, result=%{reply:Packet-Type}"
+
+    filename = ${logdir}/nas_port_auth.log
+
+    permissions = 0600
+}

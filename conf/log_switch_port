@@ -1,0 +1,7 @@
+policy {
+    log_switch_port {
+        if (&NAS-Port) {
+            log_nas_port
+        }
+    }
+}
