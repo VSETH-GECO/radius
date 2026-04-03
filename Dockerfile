@@ -12,6 +12,7 @@ ADD conf/inner-tunnel /etc/freeradius/sites-enabled/inner-tunnel
 # mods
 ADD conf/eap /etc/freeradius/mods-enabled/eap 
 ADD conf/sql /etc/freeradius/mods-enabled/sql
+ADD conf/linelog /etc/freeradius/mods-enabled/linelog
 
 ADD bootstrap.sh /
 
