@@ -19,7 +19,7 @@ In VLAN 499, the user is presented the network login page provided by `login-ng`
 
 After a successful login, `login-ng` creates a `bouncer` (dedicated app) job that reassigns the user to the VLAN dedicated to the user switch to which the user is plugged in to.
 
-This works because the bouncer can access the freeradius database. On an authentication request, freeradius looks up the attributes for a specific username in the `radreply` table. The `bouncer` edits this table, if a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
+This works because the bounder can access the freeradius database. On an authentication request, freeradius looks up the attributes for a specific username in the `radreply` table. The `bouncer` edits this table, if a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
 
 Moreover, the `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC (username == password) via the `radcheck` table (not sure how this is used though).
 
