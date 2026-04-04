@@ -1,2 +1,8 @@
 # this is for testing purposes only
 bob Cleartext-Password := "test"
+
+# Dummy entry: files vm
+9615d2a4575f Auth-Type := "EAP", Cleartext-Password := 9615d2a4575f
+    Tunnel-Type = VLAN,
+    Tunnel-Medium-Type = IEEE-802,
+    Tunnel-Private-Group-Id = "1"
