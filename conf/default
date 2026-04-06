@@ -449,7 +449,7 @@ authorize {
     if (!control:Cleartext-Password && User-Password) {
             update control {
                     Cleartext-Password := "%{User-Password}"
-                    # Dummy value, will not be sent: (fbuetler: really?)
+                    # Default VLAN for captive portal (overridden by SQL radreply):
                     Tunnel-Private-Group-ID := "499"
             }
     }

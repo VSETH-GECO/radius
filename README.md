@@ -29,49 +29,116 @@ Presumably, the client uses PAP to authenticate with freeradius, or alternativel
 
 In general, the configuration files are a modified version of the [default configuration files](https://github.com/FreeRADIUS/freeradius-server/tree/release_3_2_0/raddb).
 
-Overview:
+### Overview
 
-* PAP is enabled
-* EAP support is enabled
-* By default, EAP-TTLS is used with MSCHAPv2
+* **Authentication Methods**:
+  * PAP enabled for MAC authentication (username = password = MAC address)
+  * EAP-TTLS with MSCHAPv2 for 802.1X clients (default)
+  * EAP-PEAP with MSCHAPv2 also supported
+  * EAP-MD5 enabled for Cisco SG500x switch compatibility
+* **VLAN Assignment**:
+  * Default VLAN 499 assigned during initial authentication (captive portal VLAN)
+  * SQL `radreply` table overrides with switch-specific VLANs (501, 502, etc.)
+  * `Tunnel-Private-Group-Id` cached for fast session resumption
+* **SQL Backend**:
+  * MySQL database for user credentials and VLAN assignments
+  * Graceful degradation if database unavailable (using `-sql` prefix)
+  * Used for: authorization, accounting, post-auth logging, session tracking
 
-Detailed:
+### Detailed Configuration Changes
 
-* `radiusd.conf`
-  * log to `stdout`
-  * log all (accept and reject) auth results
-* `default`
-  * disable IPv6 listeners
-  * disable various modules in `authorize` (`filter_username`, `chap`, `mschap`, `digest`, `-ldap`)
-  * a validator is added for [backwards-compatibility](https://networkradius.com/doc/current/upgrading/other.html). Not sure whats going on with `Tunnel-Private-Group-ID := "499"`, though:
+#### `radiusd.conf`
+
+* Log to `stdout` instead of files
+* Log all authentication results (both accept and reject)
+* Run as `freerad` user/group
+
+#### `default` (main virtual server)
+
+* **Authorization section**:
+  * Disable various modules: `filter_username`, `chap`, `mschap`, `digest`, `-ldap`
+  * Enable SQL with `-sql` prefix (fail-safe: continues if DB unavailable)
+  * [Backwards-compatibility](https://networkradius.com/doc/current/upgrading/other.html) validator sets default VLAN 499:
 
     ```text
-        if (!control:Cleartext-Password && User-Password) {
-            update control {
-                    Cleartext-Password := "%{User-Password}"
-                    # Dummy value, will not be sent:
-                    Tunnel-Private-Group-ID := "499"
-            }
+    if (!control:Cleartext-Password && User-Password) {
+        update control {
+            Cleartext-Password := "%{User-Password}"
+            # Default VLAN for captive portal (overridden by SQL radreply):
+            Tunnel-Private-Group-ID := "499"
+        }
     }
     ```
 
-  * disable authentication modules, matching the disabled authorization modules
-  * enable `sql` authentication backend
-  * disable some accounting options (`detailed`, `unix`)
-* `eap`
-  * set `default_eap_type = ttls`
-  * enable caching for Session resumption / fast reauthentication
-  * set `default_eap_type = mschapv2` in ttls (tunneled tls)
-* `inner-tunnel`
-  * disable more authorization modules as above (`chap`, `-ldap`, `pap`)
-  * same for the authentication modules
-  * enable sql
-* `sql`
-  * set `dialect = "mysql"`
-  * set `driver = "rlm_sql_${dialect}"`
-  * disable tls with mysql db
-  * set db coordinates via env vars (server, port, database, user, password)
-  * set `read_groups = no`
+    This ensures users land in VLAN 499 initially for captive portal access. The SQL `radreply` table overrides this with switch-specific VLANs after successful login.
+
+* **Authentication section**:
+  * Disable authentication modules matching disabled authorization modules
+  * Enable PAP for MAC authentication
+
+* **Accounting section**:
+  * Enable SQL accounting with `-sql` prefix
+  * Disable `detailed` and `unix` accounting
+
+* **Session section**:
+  * Enable SQL for Simultaneous-Use checking
+
+* **Post-Auth section**:
+  * Enable SQL post-auth logging with `-sql` prefix
+
+#### `eap`
+
+* Set `default_eap_type = ttls` (EAP-TTLS as primary method)
+* Enable EAP-MD5 for Cisco SG500x series switches
+* **TLS Configuration**:
+  * Restrict to TLS 1.2 only (`tls_min_version = "1.2"`, `tls_max_version = "1.2"`)
+  * Disables TLS 1.0, 1.1, and 1.3 for maximum compatibility
+* **Session Caching**:
+  * Enable caching for fast reauthentication
+  * 24-hour cache lifetime
+  * Store `Tunnel-Private-Group-Id` in cache for VLAN persistence
+* **TTLS Configuration**:
+  * Set `default_eap_type = mschapv2` in tunneled TLS
+* **PEAP Configuration**:
+  * Also configured with MSCHAPv2 as alternative to TTLS
+
+#### `inner-tunnel` (for EAP tunneled authentication)
+
+* **Authorization section**:
+  * Enable `filter_username` (unlike default server)
+  * Enable `mschap` module (required for MSCHAPv2)
+  * Disable `chap`, `-ldap`
+  * Enable SQL with `-sql` prefix
+  * Comment out `pap` (not needed with MSCHAPv2)
+
+* **Authentication section**:
+  * Enable `mschap` for MSCHAPv2 authentication
+  * Disable other authentication modules
+
+* **Session section**:
+  * Enable both `radutmp` and `sql` for session tracking
+
+#### `sql`
+
+* Set `dialect = "mysql"`
+* Set `driver = "rlm_sql_${dialect}"`
+* Disable TLS with MySQL database
+* Configure database connection via environment variables:
+  * `RADIUS_DB_HOST` (server)
+  * `RADIUS_DB_PORT` (port)
+  * `RADIUS_DB_DB` (database name)
+  * `RADIUS_DB_USER` (username)
+  * `RADIUS_DB_PASSWORD` (password)
+* Set `read_groups = no` (disable group-based authorization)
+
+### Key Deviations from Standard FreeRADIUS v3.0.x
+
+1. **Default VLAN 499**: Custom logic to assign initial VLAN for captive portal
+2. **SQL fail-safe mode**: Using `-sql` prefix allows operation even if database is temporarily unavailable
+3. **TLS version lock**: Restricted to TLS 1.2 only for compatibility
+4. **EAP-MD5 support**: Added specifically for Cisco SG500x switches
+5. **Session caching**: Stores VLAN assignment for fast reconnection
+6. **No group support**: `read_groups = no` simplifies authorization to per-user basis only
 
 Nice explanation of the configuration:
 
