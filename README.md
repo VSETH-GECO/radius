@@ -13,7 +13,7 @@ For development purposes:
 
 ## Synopsis
 
-The RADIUS server authenticates users via MAC address (MAB - MAC Authentication Bypass). Upon successful authentication, the user's port on the switch is assigned to VLAN 499 by default.
+The RADIUS server authenticates users via MAC address (MAB - MAC Authentication Bypass). On the first authentication request from an unknown device, FreeRADIUS accepts the authentication and assigns default VLAN 499.
 
 In VLAN 499, the user is presented with the network login page provided by `login-ng` (dedicated app).
 
@@ -23,9 +23,9 @@ This works because the bouncer can access the FreeRADIUS database. On an authent
 
 The `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC address (username == password) via the `radcheck` table. This enables PAP authentication where the switch sends the MAC address as both username and password.
 
-Switches use MAB (MAC Authentication Bypass) with PAP authentication. End-user devices (laptops, phones) could alternatively use EAP-TTLS or EAP-PEAP with MSCHAPv2 for 802.1X authentication.
+Switches use MAB (MAC Authentication Bypass) with PAP authentication.
 
-The main reason for using MAB on a user switch is that end-user device do not have to set up 802.1X on their devices.
+The main reason for using MAB on a user switch is that end-user devices do not have to set up 802.1X on their devices.
 
 ### Key Points
 
@@ -35,7 +35,22 @@ The main reason for using MAB on a user switch is that end-user device do not ha
 * **CoA Port**: Standard CoA port 3799 for dynamic VLAN changes
 * **Accounting**: User switches send Start, Interim-Update, and Stop accounting packets
 
-### Example Authentication Flow
+### Example Initial Authentication Flow (First-Time Device)
+
+1. Unknown device connects to switch
+2. Switch sends Access-Request with User-Name = MAC address (e.g., `d45d64b09a27`)
+3. FreeRADIUS queries SQL - no entries found in `radcheck` or `radreply`
+4. Backwards-compatibility code triggers: accepts any password, assigns VLAN 499
+5. FreeRADIUS responds with Access-Accept including VLAN 499 attributes
+6. Switch assigns port to VLAN 499
+7. User authenticates via captive portal web page
+8. `bouncer` creates database entries:
+   * `radcheck`: `Cleartext-Password = "d45d64b09a27"`
+   * `radreply`: `Tunnel-Private-Group-Id = "502"` (switch-specific VLAN)
+9. `bouncer` sends CoA to switch triggering re-authentication
+10. Switch re-authenticates, now finds database entries, assigns to proper VLAN
+
+### Example Re-Authentication Flow (for an already authenticated device)
 
 1. Switch sends Access-Request with User-Name = MAC address (e.g., `d45d64b09a27`)
 2. FreeRADIUS queries SQL:
@@ -78,7 +93,7 @@ In general, the configuration files are a modified version of the [default confi
 * **Authorization section**:
   * Disable various modules: `filter_username`, `chap`, `mschap`, `digest`, `-ldap`
   * Enable SQL with `-sql` prefix (fail-safe: continues if DB unavailable)
-  * [Backwards-compatibility](https://networkradius.com/doc/current/upgrading/other.html) validator sets default VLAN 499:
+  * This [backwards-compatibility](https://networkradius.com/doc/current/upgrading/other.html) validator accepts any password when no `radcheck` db table entry exists, allowing unknown devices to authenticate and are assigned to VLAN 499:
 
     ```text
     if (!control:Cleartext-Password && User-Password) {
