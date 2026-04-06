@@ -13,17 +13,19 @@ For development purposes:
 
 ## Synopsis
 
-The RADIUS server is essentially configured to accept any authentication request (?). The user switch is configured that upon a successful authentication response, the user's port on the user switch is assigned to VLAN 499.
+The RADIUS server authenticates users via MAC address (MAB - MAC Authentication Bypass). Upon successful authentication, the user's port on the switch is assigned to VLAN 499 by default.
 
-In VLAN 499, the user is presented the network login page provided by `login-ng` (dedicated app)
+In VLAN 499, the user is presented with the network login page provided by `login-ng` (dedicated app).
 
-After a successful login, `login-ng` creates a `bouncer` (dedicated app) job that reassigns the user to the VLAN dedicated to the user switch to which the user is plugged in to.
+After a successful login, `login-ng` creates a `bouncer` (dedicated app) job that reassigns the user to the VLAN dedicated to the user switch to which the user is connected.
 
-This works because the bounder can access the freeradius database. On an authentication request, freeradius looks up the attributes for a specific username in the `radreply` table. The `bouncer` edits this table, if a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
+This works because the bouncer can access the FreeRADIUS database. On an authentication request, FreeRADIUS looks up the attributes for a specific username in the `radreply` table. The `bouncer` edits this table when a user should be relocated to a different VLAN and also triggers re-authentication of the client via Change-of-Authorization (CoA).
 
-Moreover, the `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC (username == password) via the `radcheck` table (not sure how this is used though).
+The `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC address (username == password) via the `radcheck` table. This enables PAP authentication where the switch sends the MAC address as both username and password.
 
-Presumably, the client uses PAP to authenticate with freeradius, or alternatively EAP-TTLS with MSCHAPv2.
+Switches use MAB (MAC Authentication Bypass) with PAP authentication. End-user devices (laptops, phones) could alternatively use EAP-TTLS or EAP-PEAP with MSCHAPv2 for 802.1X authentication.
+
+The main reason for using MAB on a user switch is that end-user device do not have to set up 802.1X on their devices.
 
 ### Key Points
 
