@@ -25,6 +25,24 @@ Moreover, the `bouncer` sets the `Cleartext-Password` for a user (identified by 
 
 Presumably, the client uses PAP to authenticate with freeradius, or alternatively EAP-TTLS with MSCHAPv2.
 
+### Key Points
+
+* **Method**: User switches use MAB (MAC Authentication Bypass)
+* **Authentication**: PAP with username = password = MAC address (lowercase, no separators)
+* **VLAN Assignment**: FreeRADIUS returns `Tunnel-Private-Group-Id`, `Tunnel-Medium-Type`, and `Tunnel-Type` attributes
+* **CoA Port**: Standard CoA port 3799 for dynamic VLAN changes
+* **Accounting**: User switches send Start, Interim-Update, and Stop accounting packets
+
+### Example Authentication Flow
+
+1. Switch sends Access-Request with User-Name = MAC address (e.g., `d45d64b09a27`)
+2. FreeRADIUS queries SQL:
+   * `radcheck` table: Gets `Cleartext-Password` (same as MAC)
+   * `radreply` table: Gets VLAN assignment (e.g., `Tunnel-Private-Group-Id = "502"`)
+3. FreeRADIUS responds with Access-Accept including VLAN attributes
+4. Switch assigns port to specified VLAN
+5. Accounting packets track session (Start, Interim-Update, Stop)
+
 ## What is configured?
 
 In general, the configuration files are a modified version of the [default configuration files](https://github.com/FreeRADIUS/freeradius-server/tree/release_3_2_0/raddb).
