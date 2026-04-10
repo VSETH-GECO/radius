@@ -33,6 +33,28 @@ eap {
 	#
 	timer_expire = 60
 
+	#
+	#  Some supplicants may misbehave by starting many thousands
+	#  of EAP sessions, but never finishing them.  These sessions
+	#  can cause the server to hit 'max_sessions' very quickly.
+	#  The 'timer_expire' configuration above does not help as
+	#  much as it could, because the old (duplicate) session
+	#  should be deleted as soon as the new one comes in.
+	#
+	#  If you set the 'dedup_key' below, whenever the EAP module
+	#  starts a new session, it will check for a previous session
+	#  which has the same dedup key.  If a previous session
+	#  is found, it is deleted.
+	#
+	#  Setting this configuration item may cause issues if the
+	#  same device uses multiple EAP sessions at the same time.
+	#  But that device behavior should be rare to non-existent.
+	#
+	#  The configuration item is commented out so that upgrades
+	#  do not change existing behavior.
+	#
+#	dedup_key = "%{Calling-Station-Id}"
+
 	#  There are many EAP types, but the server has support
 	#  for only a limited subset.  If the server receives
 	#  a request for an EAP type it does not support, then
@@ -202,7 +224,7 @@ eap {
 		#  server.pem, followed by CA1.pem, followed by
 		#  CA2.pem.
 		#
-		#  When using "ca_file" or "ca_dir", the
+		#  When using "ca_file" or "ca_path", the
 		#  "certificate_file" should contain only
 		#  "server.pem".  And then you may (or may not) need
 		#  to set "auto_chain", depending on your version of
@@ -228,6 +250,26 @@ eap {
 		#  *one* CA certificate.
 		#
 		ca_file = ${cadir}/ca.pem
+
+		#
+		#  Directory where multiple CAs are stored.  Both
+		#  "ca_file" and "ca_path" can be used at the same time.
+		#
+		#  Each file in this directory must contain one
+		#  certificate, and ONLY one certificate.
+		#
+		ca_path = ${cadir}
+
+		# OpenSSL does not reload contents of ca_path dir over time.
+		# That means that if check_crl is enabled and CRLs are loaded
+		# from ca_path dir, at some point CRLs will expire and
+		# the server will stop authenticating users.
+		#
+		# If ca_path_reload_interval is non-zero, it will force OpenSSL
+		# to reload all data from ca_path periodically
+		#
+		# Flush ca_path each hour
+	#	ca_path_reload_interval = 3600
 
 	 	#  OpenSSL will automatically create certificate chains,
 	 	#  unless we tell it to not do that.  The problem is that
@@ -325,19 +367,6 @@ eap {
 		# Check if intermediate CAs have been revoked.
 	#	check_all_crl = yes
 
-		ca_path = ${cadir}
-
-		# OpenSSL does not reload contents of ca_path dir over time.
-		# That means that if check_crl is enabled and CRLs are loaded
-		# from ca_path dir, at some point CRLs will expire and
-		# RADIUSd will stop authenticating users.
-		# If ca_path_reload_interval is non-zero, it will force OpenSSL
-		# to reload all data from ca_path periodically
-		#
-		# Flush ca_path each hour
-	#	ca_path_reload_interval = 3600
-
-
 		# Accept an expired Certificate Revocation List
 		#
 	#	allow_expired_crl = no
@@ -403,6 +432,13 @@ eap {
 		#  in "man 1 ciphers".
 		#
 		cipher_list = "DEFAULT"
+
+		#  Set this option to specify the allowed
+		#  TLS signature algorithms for OpenSSL 1.1.1 and above.
+		#  The format and available signature algorithms are listed
+		#  in "man 3 SSL_CTX_set1_sigalgs_list".
+		#
+		# sigalgs_list = ""
 
 		#  If enabled, OpenSSL will use server cipher list
 		#  (possibly defined by cipher_list option above)
@@ -482,9 +518,8 @@ eap {
 		#  compatibility, as clients get upgraded, and people
 		#  don't upgrade their copies of FreeRADIUS.
 		#
-		#  Also note that we only support TLS 1.3 for EAP-TLS.
-		#  Other versions of EAP (PEAP, TTLS, FAST) DO NOT
-		#  SUPPORT TLS 1.3.
+		#  Also note that we only support TLS 1.3 for EAP-TLS,
+		#  TTLS, and PEAP.  It is not supported for EAP-FAST.
 		#
 		tls_min_version = "1.2"
 		tls_max_version = "1.2"
@@ -656,6 +691,12 @@ eap {
 			#
 			#  You should also delete all of the files
 			#  in the directory when the server starts.
+			#
+			#  Note that, on Linux systems with systemd, the
+			#  /tmp directory may be restricted. In this case
+			#  it may be best to use `${run_dir}/tmp` here
+			#  and create the temporary directory with the
+			#  systemd `RuntimeDirectory` unit option.
 			#
 		#	tmpdir = /tmp/radiusd
 
@@ -1099,6 +1140,106 @@ eap {
 		#  a secure method, such as via 'openssl rand -hex 32'
 		#
 	#	pac_opaque_key = "0123456789abcdef0123456789ABCDEF"
+
+		#  Same as for TTLS, PEAP, etc.
+		#
+	#	virtual_server = inner-tunnel
+	#}
+
+	#  EAP-TEAP
+	#
+	#  The TEAP module implements the EAP-TEAP protocol
+	#
+	#teap {
+		#  Point to the common TLS configuration
+		#
+	#	tls = tls-common
+
+	#	default_eap_type = mschapv2
+
+		#
+		#  Set the EAP type for user / machine authentication.
+		#
+		#  If set, these values over-ride "default_eap_type"
+		#
+		#  These values can be over-ridden at run time by setting
+		#
+		#	&session-state:TEAP-Type-User = ...
+		#
+		#  and
+		#	&session-state:TEAP-Type-Machine = ...
+		#
+		#  The values for those attributes are the same as for EAP-Type.
+		#
+		#  Note that if you try to use "EAP-Type := TEAP" in the
+		#  "inner-tunnel" virtual server, it will not work.
+		#
+		#
+		#  PASSWORDS
+		#
+		#  Some supplicants support password authentication inside of
+		#  TEAP.  This can be configured automatically by setting
+		#
+		#	identity_type = "user"
+		#
+		#  and then not setting "default_eap_type" or
+		#  "user_eap_type".  The TEAP module will then
+		#  automatically initiate password authentication.
+		#
+		#  The user credentials are placed into the User-Name
+		#  and User-Password attributes inside of the
+		#  "inner-tunnel" virtual server.  These attributes
+		#  are not sent in TEAP, but are created by the module
+		#  from the Basic-Password-Auth-Resp TLV which is in TEAP.
+		#
+		#  Supported authentication methods inside of TEAP are
+		#  EAP-TLS, EAP-MSCHAPv2, and PAP.
+		#
+#		user_eap_type = mschapv2
+#		machine_eap_type = tls
+
+		#  If 'cipher_list' is set here, it will over-ride the
+		#  'cipher_list' configuration from the 'tls-common'
+		#  configuration.  The EAP-TEAP module has it's own
+		#  over-ride for 'cipher_list' because the
+		#  specifications mandata a different set of ciphers
+		#  than are used by the other EAP methods.
+		#
+		#  cipher_list though must include "ADH" for anonymous provisioning.
+		#  This is not as straight forward as appending "ADH" alongside
+		#  "DEFAULT" as "DEFAULT" contains "!aNULL" so instead it is
+		#  recommended "ALL:!EXPORT:!eNULL:!SSLv2" is used
+		#
+	#	cipher_list = "ALL:!EXPORT:!eNULL:!SSLv2"
+
+		#  Authority ID of the server
+		#
+		#  If you are running a cluster of RADIUS servers, you
+		#  should make the value chosen here the same on all
+		#  your RADIUS servers.  This value should be unique
+		#  to your installation.  We suggest using a domain
+		#  name.
+		#
+	#	authority_identity = "1234"
+
+
+		#
+		#  Automatically go through the workflow of first machine, then user
+		#  authentication.
+		#
+		#  allowed values:  	"machine,user"
+		#  	   		"user,machine"
+		#			"user"
+		#			"machine"
+		#
+		#  If this isn't set, then TEAP likely won't work.
+		#
+		#  This configuration sets &session-state:FreeRADIUS-EAP-TEAP-TLV-Identity-Type with the
+		#  relevant values.  The TEAP module then picks those values, in order, to authenticate the
+		#  chosen identity.  You can set &session-state:FreeRADIUS-EAP-TEAP-TLV-Identity-Type
+		#  manually, but that is substantially more complicated.
+		#
+	#	identity_types = "machine,user"
 
 		#  Same as for TTLS, PEAP, etc.
 		#
