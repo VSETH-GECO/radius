@@ -23,7 +23,7 @@ This works because the bouncer can access the FreeRADIUS database. On an authent
 
 The `bouncer` sets the `Cleartext-Password` for a user (identified by its MAC) to its MAC address (username == password) via the `radcheck` table. This enables PAP authentication where the switch sends the MAC address as both username and password.
 
-Switches use MAB (MAC Authentication Bypass) with PAP authentication.
+Switches use MAB (MAC Authentication Bypass) with PAP authentication. There are also EAP-TTLS, EAP-PEAP, and EAP-MD5 configured, but are currently not used.
 
 The main reason for using MAB on a user switch is that end-user devices do not have to set up 802.1X on their devices.
 
@@ -34,6 +34,7 @@ The main reason for using MAB on a user switch is that end-user devices do not h
 * **VLAN Assignment**: FreeRADIUS returns `Tunnel-Private-Group-Id`, `Tunnel-Medium-Type`, and `Tunnel-Type` attributes
 * **CoA Port**: Standard CoA port 3799 for dynamic VLAN changes
 * **Accounting**: User switches send Start, Interim-Update, and Stop accounting packets
+* **SQL Backend**: MySQL database used for authorization, accounting, session tracking
 
 ### Example Initial Authentication Flow (First-Time Device)
 
@@ -62,33 +63,15 @@ The main reason for using MAB on a user switch is that end-user devices do not h
 
 ## What is configured?
 
-In general, the configuration files are a modified version of the [default configuration files](https://github.com/FreeRADIUS/freeradius-server/tree/release_3_2_0/raddb).
+In general, the configuration files are a modified version of the [default configuration files](https://github.com/FreeRADIUS/freeradius-server/tree/release_3_2_7/raddb).
 
-### Overview
-
-* **Authentication Methods**:
-  * PAP enabled for MAC authentication (username = password = MAC address)
-  * EAP-TTLS with MSCHAPv2 for 802.1X clients (default)
-  * EAP-PEAP with MSCHAPv2 also supported
-  * EAP-MD5 enabled for Cisco SG500x switch compatibility
-* **VLAN Assignment**:
-  * Default VLAN 499 assigned during initial authentication (captive portal VLAN)
-  * SQL `radreply` table overrides with switch-specific VLANs (501, 502, etc.)
-  * `Tunnel-Private-Group-Id` cached for fast session resumption
-* **SQL Backend**:
-  * MySQL database for user credentials and VLAN assignments
-  * Graceful degradation if database unavailable (using `-sql` prefix)
-  * Used for: authorization, accounting, post-auth logging, session tracking
-
-### Detailed Configuration Changes
-
-#### `radiusd.conf`
+### `radiusd.conf`
 
 * Log to `stdout` instead of files
 * Log all authentication results (both accept and reject)
 * Run as `freerad` user/group
 
-#### `default` (main virtual server)
+### `default` (main virtual server)
 
 * **Authorization section**:
   * Disable various modules: `filter_username`, `chap`, `mschap`, `digest`, `-ldap`
@@ -121,7 +104,7 @@ In general, the configuration files are a modified version of the [default confi
 * **Post-Auth section**:
   * Enable SQL post-auth logging with `-sql` prefix
 
-#### `eap`
+### `eap`
 
 * Set `default_eap_type = ttls` (EAP-TTLS as primary method)
 * Enable EAP-MD5 for Cisco SG500x series switches
@@ -137,7 +120,7 @@ In general, the configuration files are a modified version of the [default confi
 * **PEAP Configuration**:
   * Also configured with MSCHAPv2 as alternative to TTLS
 
-#### `inner-tunnel` (for EAP tunneled authentication)
+### `inner-tunnel` (for EAP tunneled authentication)
 
 * **Authorization section**:
   * Enable `filter_username` (unlike default server)
@@ -153,7 +136,7 @@ In general, the configuration files are a modified version of the [default confi
 * **Session section**:
   * Enable both `radutmp` and `sql` for session tracking
 
-#### `sql`
+### `sql`
 
 * Set `dialect = "mysql"`
 * Set `driver = "rlm_sql_${dialect}"`
